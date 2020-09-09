@@ -50,6 +50,8 @@ const (
 	OmitEmptyTag string = "omitempty"
 
 	BlockTag string = "block"
+
+	AttributeTag string = "attribute"
 )
 
 type fieldMeta struct {
@@ -62,6 +64,7 @@ type fieldMeta struct {
 	omit          bool
 	omitEmpty     bool
 	block         bool
+	attribute     bool
 }
 
 // encode converts a reflected valued into an HCL ast.Node in a depth-first manner.
@@ -318,6 +321,10 @@ func encodeStruct(in reflect.Value) (ast.Node, []*ast.ObjectKey, error) {
 			item.Keys = append(item.Keys, childKeys...)
 		}
 		list.Add(item)
+
+		if meta.attribute {
+			item.Assign = token.Pos{Line: 1}
+		}
 	}
 	if len(keys) == 0 {
 		return &ast.ObjectType{List: list}, nil, nil
@@ -396,6 +403,8 @@ func extractFieldMeta(f reflect.StructField) (meta fieldMeta) {
 				meta.unusedKeys = true
 			case BlockTag:
 				meta.block = true
+			case AttributeTag:
+				meta.attribute = true
 			}
 		}
 	}
