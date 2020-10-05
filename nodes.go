@@ -275,16 +275,17 @@ func encodeStruct(in reflect.Value) (ast.Node, []*ast.ObjectKey, error) {
 		if meta.block {
 			//  TODO(juliogreff): handle cases where the value is
 			//  not a slice
-			v := val.(*ast.ListType)
-			items := make([]*ast.ObjectItem, 0, len(v.List))
-			for _, listItem := range v.List {
-				item := &ast.ObjectItem{
-					Keys: nil,
-					Val:  listItem.(*ast.ObjectType),
+			if v, ok := val.(*ast.ListType); ok {
+				items := make([]*ast.ObjectItem, 0, len(v.List))
+				for _, listItem := range v.List {
+					item := &ast.ObjectItem{
+						Keys: nil,
+						Val:  listItem.(*ast.ObjectType),
+					}
+					items = append(items, item)
 				}
-				items = append(items, item)
+				val = &ast.ObjectList{Items: items}
 			}
-			val = &ast.ObjectList{Items: items}
 		}
 
 		// this field is anonymous and should be squashed into the parent struct's fields
